@@ -25,7 +25,8 @@ def check(path):
 
         info = response.json()
         import json
-        logging.info(json.dumps(info, indent=2))
+        #logging.info(json.dumps(info, indent=2))
+        logging.info('%s: %s', requirement.name, info['releases'].keys())
 
 
 def main():
