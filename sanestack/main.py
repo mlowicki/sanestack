@@ -9,12 +9,27 @@ from pip.req import parse_requirements
 import logging
 
 from argh import arg, dispatch_commands
+import colorlog
 import requests
 
 
-logging.basicConfig(level=logging.INFO, format='%(message)s')
-logging.getLogger('requests').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
+
+
+def setup_logging(verbose):
+    if verbose:
+        logging.getLogger('requests').setLevel(logging.DEBUG)
+        logger.setLevel(logging.DEBUG)
+        formatter = colorlog.ColoredFormatter(
+            '%(log_color)s%(levelname)s:%(name)s:%(message)s')
+    else:
+        logging.getLogger('requests').setLevel(logging.WARNING)
+        logger.setLevel(logging.INFO)
+        formatter = colorlog.ColoredFormatter('%(log_color)s%(message)s')
+
+    handler = logging.StreamHandler()
+    logging.getLogger('').addHandler(handler)
+    handler.setFormatter(formatter)
 
 
 def is_update(requirement, version):
@@ -46,12 +61,13 @@ def is_update(requirement, version):
     return True
 
 
+@arg('-v', '--verbose', help='Verbose mode')
 @arg('--legacy-versions', help='Show legacy versions')
 @arg('--pre-releases', help='Show pre-releases (alpha, beta etc.)')
 @arg('path', help='Path to check (directory or concrete file)')
-def check(path, pre_releases=False, legacy_versions=False):
+def check(path, pre_releases=False, legacy_versions=False, verbose=False):
+    setup_logging(verbose)
     logger.info('Checking "%s"', path)
-
     session = PipSession()
     finder = PackageFinder(find_links=[], index_urls=[], session=session)
 
