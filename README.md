@@ -3,6 +3,7 @@ Check if your dependencies are up to date.
 
 # Usage
 ```
+19:24 $ ./bin/sanestack check ~/projects/sync/requirements/main.txt
 Checking "/Users/mlowicki/projects/sync/requirements/main.txt"
 Updates for celery available: ['3.1.21', '3.1.22', '3.1.23']
 Updates for coverage available: ['4.0', '4.0.1', '4.0.2', '4.0.3']
