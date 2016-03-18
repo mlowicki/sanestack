@@ -1,3 +1,5 @@
+from pip.download import PipSession
+from pip.index import PackageFinder
 from pip._vendor.packaging.version import (
     InvalidVersion,
     LegacyVersion,
@@ -5,7 +7,6 @@ from pip._vendor.packaging.version import (
 )
 from pip.req import parse_requirements
 import logging
-import uuid
 
 from argh import arg, dispatch_commands
 import requests
@@ -51,7 +52,11 @@ def is_update(requirement, version):
 def check(path, pre_releases=False, legacy_versions=False):
     logger.info('Checking "%s"', path)
 
-    for requirement in parse_requirements(path, session=uuid.uuid1()):
+    session = PipSession()
+    finder = PackageFinder(find_links=[], index_urls=[], session=session)
+
+    for requirement in parse_requirements(path, session=session,
+                                          finder=finder):
         url = 'https://pypi.python.org/pypi/%s/json' % requirement.name
         response = requests.get(url)
 
