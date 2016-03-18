@@ -69,15 +69,16 @@ def is_update(requirement, version):
     return True
 
 
-def find_updates(requirement, legacy_versions, pre_releases):
+def get_updates(requirement, legacy_versions, pre_releases):
     """
-    Find all updates for passed requirement.
+    Get all updates for passed requirement.
     :param requirement:
     :type: pip.req.req_install.InstallRequirement
     :param legacy_versions: allow legacy versions (f.ex. 0.1dev-r1716')
     :type: bool
     :param pre_releases: allow pre-releases (beta, alpha etc.)
     :type: bool
+    :rtype: list(str)
     """
     url = 'https://pypi.python.org/pypi/%s/json' % requirement.name
     response = requests.get(url)
@@ -106,9 +107,7 @@ def find_updates(requirement, legacy_versions, pre_releases):
         if is_update(requirement, version):
             updates.append(version)
 
-    if updates:
-        logger.info('Updates for %s available: %s', requirement.name,
-                    [str(version) for version in sorted(updates)])
+    return updates
 
 
 @arg('--packages', help='List of packages to check. All if not set',
@@ -123,15 +122,25 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False,
     logger.info('Checking "%s"', path)
     session = PipSession()
     finder = PackageFinder(find_links=[], index_urls=[], session=session)
+    total_updates = 0
 
     for requirement in parse_requirements(path, session=session,
                                           finder=finder):
         if packages and requirement.name not in packages:
             continue
 
-        find_updates(requirement=requirement,
-                     legacy_versions=legacy_versions,
-                     pre_releases=pre_releases)
+        updates = get_updates(requirement=requirement,
+                              legacy_versions=legacy_versions,
+                              pre_releases=pre_releases)
+
+        if not updates:
+            continue
+
+        logger.info('Updates for %s available: %s', requirement.name,
+                    [str(version) for version in sorted(updates)])
+        total_updates += len(updates)
+
+    logger.info('%d updates found', total_updates)
 
 
 def main():
