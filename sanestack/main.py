@@ -110,6 +110,8 @@ def get_updates(requirement, legacy_versions, pre_releases):
     return updates
 
 
+@arg('--ignore-packages', help='List of packages to skip checking',
+     nargs='+', type=str)
 @arg('--packages', help='List of packages to check. All if not set',
      nargs='+', type=str)
 @arg('-v', '--verbose', help='Verbose mode')
@@ -117,7 +119,7 @@ def get_updates(requirement, legacy_versions, pre_releases):
 @arg('--pre-releases', help='Show pre-releases (alpha, beta etc.)')
 @arg('path', help='Path to check (directory or concrete file)')
 def check(path, pre_releases=False, legacy_versions=False, verbose=False,
-          packages=[]):
+          packages=[], ignore_packages=[]):
     setup_logging(verbose)
     logger.info('Checking "%s"', path)
     session = PipSession()
@@ -127,6 +129,9 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False,
     for requirement in parse_requirements(path, session=session,
                                           finder=finder):
         if packages and requirement.name not in packages:
+            continue
+
+        if ignore_packages and requirement.name in ignore_packages:
             continue
 
         updates = get_updates(requirement=requirement,
