@@ -16,12 +16,6 @@ def is_update(requirement, version):
     """
     :rtype: bool
     """
-    try:
-        version = Version(version)
-    except InvalidVersion:
-        # ==0.1dev-r1716' is f.ex. not parsed correctly.
-        return False
-
     for spec in requirement.specifier:
         if spec.operator == '==':
             if spec._get_operator('<=')(version, spec.version):
@@ -47,8 +41,9 @@ def is_update(requirement, version):
     return True
 
 
+@arg('--pre-releases', help='Show pre-releases (alpha, beta etc.)')
 @arg('path', help='Path to check (directory or concrete file)')
-def check(path):
+def check(path, pre_releases=False):
     logger.info('Checking "%s"', path)
 
     for requirement in parse_requirements(path, session=uuid.uuid1()):
@@ -64,6 +59,15 @@ def check(path):
         updates = []
 
         for version in info['releases'].keys():
+            try:
+                version = Version(version)
+            except InvalidVersion:
+                # ==0.1dev-r1716' is f.ex. not parsed correctly.
+                continue
+
+            if not pre_releases and version.is_prerelease:
+                continue
+
             if is_update(requirement, version):
                 updates.append(version)
 
