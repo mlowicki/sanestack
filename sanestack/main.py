@@ -1,3 +1,4 @@
+from pip._vendor.packaging.version import Version, InvalidVersion
 from pip.req import parse_requirements
 import logging
 import uuid
@@ -7,7 +8,43 @@ import requests
 
 
 logging.basicConfig(level=logging.INFO)
+logging.getLogger('requests').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
+
+
+def is_update(requirement, version):
+    """
+    :rtype: bool
+    """
+    try:
+        version = Version(version)
+    except InvalidVersion:
+        # ==0.1dev-r1716' is f.ex. not parsed correctly.
+        return False
+
+    for spec in requirement.specifier:
+        if spec.operator == '==':
+            if spec._get_operator('<=')(version, spec.version):
+                return False
+        elif spec.operator == '!=':
+            if spec.version == release:
+                return False
+        elif spec.operator == '>':
+            if spec._get_operator('<=')(version, spec.version):
+                return False
+        elif spec.operator == '>=':
+            if spec._get_operator('<')(version, spec.version):
+                return False
+        elif spec.operator == '<':
+            if spec._get_operator('<')(version, spec.version):
+                return False
+        elif spec.operator == '<=':
+            if spec._get_operator('<=')(version, spec.version):
+                return False
+        else:
+            raise ValueError('Unknown operator: %s' % spec.operator)
+
+    return True
 
 
 @arg('path', help='Path to check (directory or concrete file)')
@@ -24,10 +61,14 @@ def check(path):
             continue
 
         info = response.json()
-        import json
-        #logging.info(json.dumps(info, indent=2))
-        logging.info('%s: %s', requirement.name, info['releases'].keys())
+        updates = []
 
+        for version in info['releases'].keys():
+            if is_update(requirement, version):
+                updates.append(version)
+
+        if updates:
+            logger.info('%s updates available: %s', requirement.name, updates)
 
 def main():
     dispatch_commands([check])
