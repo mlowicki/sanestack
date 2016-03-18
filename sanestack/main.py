@@ -11,7 +11,7 @@ from argh import arg, dispatch_commands
 import requests
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 logging.getLogger('requests').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ def check(path, pre_releases=False, legacy_versions=False):
                 updates.append(str(version))
 
         if updates:
-            logger.info('%s updates available: %s', requirement.name, updates)
+            logger.info('Updates for %s available: %s', requirement.name, updates)
 
 def main():
     dispatch_commands([check])
