@@ -56,7 +56,7 @@ def check(path, pre_releases=False, legacy_versions=False):
         response = requests.get(url)
 
         if not response.ok:
-            logging.error('Request to %s failed (%d)', url,
+            logger.error('Request to %s failed (%d)', url,
                           response.status_code)
             continue
 
@@ -67,7 +67,7 @@ def check(path, pre_releases=False, legacy_versions=False):
             try:
                 version = parse(version)
             except InvalidVersion:
-                # ==0.1dev-r1716' is f.ex. not parsed correctly.
+                logger.error('Cannot parse version: %s', version)
                 continue
 
             if not legacy_versions and isinstance(version, LegacyVersion):
