@@ -111,11 +111,14 @@ def find_updates(requirement, legacy_versions, pre_releases):
                     [str(version) for version in sorted(updates)])
 
 
+@arg('--packages', help='List of packages to check. All if not set',
+     nargs='+', type=str)
 @arg('-v', '--verbose', help='Verbose mode')
 @arg('--legacy-versions', help='Show legacy versions')
 @arg('--pre-releases', help='Show pre-releases (alpha, beta etc.)')
 @arg('path', help='Path to check (directory or concrete file)')
-def check(path, pre_releases=False, legacy_versions=False, verbose=False):
+def check(path, pre_releases=False, legacy_versions=False, verbose=False,
+          packages=[]):
     setup_logging(verbose)
     logger.info('Checking "%s"', path)
     session = PipSession()
@@ -123,6 +126,9 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False):
 
     for requirement in parse_requirements(path, session=session,
                                           finder=finder):
+        if packages and requirement.name not in packages:
+            continue
+
         find_updates(requirement=requirement,
                      legacy_versions=legacy_versions,
                      pre_releases=pre_releases)
