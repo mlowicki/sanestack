@@ -1,5 +1,5 @@
 # sanestack
-Check if your dependencies are up to date
+Check if your dependencies are up to date.
 
 # Usage
 ```

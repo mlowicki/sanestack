@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 def setup_logging(verbose):
+    """
+    :param verbose: Enable verbose logging
+    :type: bool
+    """
     if verbose:
         logging.getLogger('requests').setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
@@ -34,6 +38,10 @@ def setup_logging(verbose):
 
 def is_update(requirement, version):
     """
+    :param requirement:
+    :type: pip.req.req_install.InstallRequirement
+    :param version:
+    :type: pip._vendor.packaging.version.Version
     :rtype: bool
     """
     for spec in requirement.specifier:
@@ -62,6 +70,15 @@ def is_update(requirement, version):
 
 
 def find_updates(requirement, legacy_versions, pre_releases):
+    """
+    Find all updates for passed requirement.
+    :param requirement:
+    :type: pip.req.req_install.InstallRequirement
+    :param legacy_versions: allow legacy versions (f.ex. 0.1dev-r1716')
+    :type: bool
+    :param pre_releases: allow pre-releases (beta, alpha etc.)
+    :type: bool
+    """
     url = 'https://pypi.python.org/pypi/%s/json' % requirement.name
     response = requests.get(url)
 
@@ -90,9 +107,8 @@ def find_updates(requirement, legacy_versions, pre_releases):
             updates.append(version)
 
     if updates:
-        updates.sort()
         logger.info('Updates for %s available: %s', requirement.name,
-                    [str(version) for version in updates])
+                    [str(version) for version in sorted(updates)])
 
 
 @arg('-v', '--verbose', help='Verbose mode')
@@ -110,6 +126,7 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False):
         find_updates(requirement=requirement,
                      legacy_versions=legacy_versions,
                      pre_releases=pre_releases)
+
 
 def main():
     dispatch_commands([check])
