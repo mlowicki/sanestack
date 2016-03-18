@@ -1,4 +1,8 @@
-from pip._vendor.packaging.version import Version, InvalidVersion
+from pip._vendor.packaging.version import (
+    InvalidVersion,
+    LegacyVersion,
+    parse,
+)
 from pip.req import parse_requirements
 import logging
 import uuid
@@ -41,9 +45,10 @@ def is_update(requirement, version):
     return True
 
 
+@arg('--legacy-versions', help='Show legacy versions')
 @arg('--pre-releases', help='Show pre-releases (alpha, beta etc.)')
 @arg('path', help='Path to check (directory or concrete file)')
-def check(path, pre_releases=False):
+def check(path, pre_releases=False, legacy_versions=False):
     logger.info('Checking "%s"', path)
 
     for requirement in parse_requirements(path, session=uuid.uuid1()):
@@ -60,9 +65,12 @@ def check(path, pre_releases=False):
 
         for version in info['releases'].keys():
             try:
-                version = Version(version)
+                version = parse(version)
             except InvalidVersion:
                 # ==0.1dev-r1716' is f.ex. not parsed correctly.
+                continue
+
+            if not legacy_versions and isinstance(version, LegacyVersion):
                 continue
 
             if not pre_releases and version.is_prerelease:
