@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(name='sanestack',
       version='0.0.1',
-      description='Check if your dependencies are up to date',
+      description='Check if your dependencies are up to date.',
       author='Michał Łowicki',
       author_email='mlowicki@gmail.com',
       url='https://github.com/mlowicki/sanestack',
