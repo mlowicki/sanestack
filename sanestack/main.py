@@ -69,7 +69,7 @@ def check(path, pre_releases=False):
                 continue
 
             if is_update(requirement, version):
-                updates.append(version)
+                updates.append(str(version))
 
         if updates:
             logger.info('%s updates available: %s', requirement.name, updates)
