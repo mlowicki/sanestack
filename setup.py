@@ -5,7 +5,7 @@ from setuptools import setup
 
 
 setup(name='sanestack',
-      version='0.0.7',
+      version='0.0.8',
       description='Check if your dependencies are up to date.',
       author='Michał Łowicki',
       author_email='mlowicki@gmail.com',
