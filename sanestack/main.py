@@ -8,7 +8,7 @@ from pip._vendor.packaging.version import (
 from pip.req import parse_requirements
 import logging
 
-from argh import arg, dispatch_commands
+from argh import arg, dispatch_command
 import colorlog
 import requests
 
@@ -149,7 +149,7 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False,
 
 
 def main():
-    dispatch_commands([check])
+    dispatch_command(check)
 
 
 if __name__ == '__main__':
