@@ -3,6 +3,7 @@ from pip.index import PackageFinder
 from pip._vendor.packaging.version import (
     InvalidVersion,
     LegacyVersion,
+    Version,
     parse,
 )
 from pip.req import parse_requirements
@@ -49,23 +50,25 @@ def is_update(requirement, version):
     :rtype: bool
     """
     for spec in requirement.specifier:
+        spec_version = Version(spec.version)
+
         if spec.operator == '==':
-            if spec._get_operator('<=')(version, spec.version):
+            if version <= spec_version:
                 return False
         elif spec.operator == '!=':
-            if spec.version == release:
+            if version == spec_version:
                 return False
         elif spec.operator == '>':
-            if spec._get_operator('<=')(version, spec.version):
+            if version <= spec_version:
                 return False
         elif spec.operator == '>=':
-            if spec._get_operator('<')(version, spec.version):
+            if version < spec_version:
                 return False
         elif spec.operator == '<':
-            if spec._get_operator('<')(version, spec.version):
+            if version < spec_version:
                 return False
         elif spec.operator == '<=':
-            if spec._get_operator('<=')(version, spec.version):
+            if version <= spec_version:
                 return False
         else:
             raise ValueError('Unknown operator: %s' % spec.operator)
