@@ -129,7 +129,8 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False,
     for requirement in parse_requirements(path, session=session,
                                           finder=finder):
         if ((packages and requirement.name not in packages) or
-            (skip_packages and requirement.name in skip_packages)):
+            (skip_packages and requirement.name in skip_packages) or
+            (requirement.req is None)):
             continue
 
         if len(requirement.specifier) == 0:
