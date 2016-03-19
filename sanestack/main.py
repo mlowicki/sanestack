@@ -130,7 +130,7 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False,
                                           finder=finder):
         if ((packages and requirement.name not in packages) or
             (skip_packages and requirement.name in skip_packages) or
-            (requirement.req is None)):
+            requirement.editable):
             continue
 
         if len(requirement.specifier) == 0:
