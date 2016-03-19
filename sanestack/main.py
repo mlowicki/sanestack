@@ -6,9 +6,11 @@ from pip._vendor.packaging.version import (
     parse,
 )
 from pip.req import parse_requirements
+from tempfile import NamedTemporaryFile
 import logging
 
 from argh import arg, dispatch_command
+from argh.exceptions import CommandError
 import colorlog
 import requests
 
@@ -110,6 +112,33 @@ def get_updates(requirement, legacy_versions, pre_releases):
     return updates
 
 
+def get_requirements(path, line):
+    """
+    :param path: path to requirements file
+    :type: str
+    :param line: single requirements line (f.ex. "ipdb=0.0.1")
+    :type: str
+    :rtype: list(pip.req.req_install.InstallRequirement)
+    """
+    session = PipSession()
+    finder = PackageFinder(find_links=[], index_urls=[], session=session)
+
+    if path is not None:
+        for requirement in parse_requirements(path, session=session,
+                                              finder=finder):
+            yield requirement
+
+    if line is not None:
+        with NamedTemporaryFile() as f:
+            f.write(line)
+            f.seek(0)
+
+            for requirement in parse_requirements(f.name, session=session,
+                                                  finder=finder):
+                yield requirement
+
+
+@arg('-l', '--line', help='requirements line to check (f.ex. "ipdb=0.0.1")')
 @arg('--skip-packages', help='list of packages to skip checking',
      nargs='+', type=str, metavar='PACKAGE')
 @arg('--packages', help='list of packages to check',
@@ -117,17 +146,17 @@ def get_updates(requirement, legacy_versions, pre_releases):
 @arg('-v', '--verbose', help='verbose mode')
 @arg('--legacy-versions', help='show legacy versions')
 @arg('--pre-releases', help='show pre-releases (alpha, beta etc.)')
-@arg('path', help='file to check')
+@arg('path', help='requirements file to check', nargs='?')
 def check(path, pre_releases=False, legacy_versions=False, verbose=False,
-          packages=[], skip_packages=[]):
+          packages=[], skip_packages=[], line=None):
     setup_logging(verbose)
-    logger.info('Checking "%s"', path)
-    session = PipSession()
-    finder = PackageFinder(find_links=[], index_urls=[], session=session)
+
+    if line is None and path is None:
+        raise CommandError('at least one of path or line is required')
+
     total_updates = 0
 
-    for requirement in parse_requirements(path, session=session,
-                                          finder=finder):
+    for requirement in get_requirements(path, line):
         if ((packages and requirement.name not in packages) or
             (skip_packages and requirement.name in skip_packages) or
             requirement.editable):
