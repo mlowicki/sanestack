@@ -110,16 +110,16 @@ def get_updates(requirement, legacy_versions, pre_releases):
     return updates
 
 
-@arg('--ignore-packages', help='List of packages to skip checking',
-     nargs='+', type=str)
-@arg('--packages', help='List of packages to check. All if not set',
-     nargs='+', type=str)
-@arg('-v', '--verbose', help='Verbose mode')
-@arg('--legacy-versions', help='Show legacy versions')
-@arg('--pre-releases', help='Show pre-releases (alpha, beta etc.)')
-@arg('path', help='Path to check (directory or concrete file)')
+@arg('--skip-packages', help='list of packages to skip checking',
+     nargs='+', type=str, metavar='PACKAGE')
+@arg('--packages', help='list of packages to check',
+     nargs='+', type=str, metavar='PACKAGE')
+@arg('-v', '--verbose', help='verbose mode')
+@arg('--legacy-versions', help='show legacy versions')
+@arg('--pre-releases', help='show pre-releases (alpha, beta etc.)')
+@arg('path', help='file to check')
 def check(path, pre_releases=False, legacy_versions=False, verbose=False,
-          packages=[], ignore_packages=[]):
+          packages=[], skip_packages=[]):
     setup_logging(verbose)
     logger.info('Checking "%s"', path)
     session = PipSession()
@@ -131,7 +131,7 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False,
         if packages and requirement.name not in packages:
             continue
 
-        if ignore_packages and requirement.name in ignore_packages:
+        if skip_packages and requirement.name in skip_packages:
             continue
 
         updates = get_updates(requirement=requirement,
