@@ -14,6 +14,8 @@ from argh.exceptions import CommandError
 import colorlog
 import requests
 
+from sanestack import __version__
+
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +140,7 @@ def get_requirements(path, line):
                 yield requirement
 
 
+@arg('-V', '--version', help='Print version')
 @arg('-l', '--line', help='requirements line to check (f.ex. "ipdb=0.0.1")')
 @arg('--skip-packages', help='list of packages to skip checking',
      nargs='+', type=str, metavar='PACKAGE')
@@ -148,8 +151,12 @@ def get_requirements(path, line):
 @arg('--pre-releases', help='show pre-releases (alpha, beta etc.)')
 @arg('path', help='requirements file to check', nargs='?')
 def check(path, pre_releases=False, legacy_versions=False, verbose=False,
-          packages=[], skip_packages=[], line=None):
+          packages=[], skip_packages=[], line=None, version=False):
     setup_logging(verbose)
+
+    if version:
+        logger.info(__version__)
+        return
 
     if line is None and path is None:
         raise CommandError('at least one of path or line is required')

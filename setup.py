@@ -3,13 +3,20 @@
 
 from setuptools import setup
 
+from sanestack import __version__
+
 
 setup(name='sanestack',
-      version='0.0.11',
+      version=__version__,
       description='Check if your dependencies are up to date.',
       author='Michał Łowicki',
       author_email='mlowicki@gmail.com',
       url='https://github.com/mlowicki/sanestack',
+      license='MIT',
+      keywords='dependencies sane stack technical dept updates security '
+               'fixes upgrades health project requirements',
+      download_url=('https://github.com/mlowicki/sanestack/tarball/' +
+                    __version__),
       packages=['sanestack'],
       entry_points={'console_scripts': [
           'sanestack = sanestack.main:main']
