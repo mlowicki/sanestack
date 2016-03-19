@@ -128,10 +128,12 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False,
 
     for requirement in parse_requirements(path, session=session,
                                           finder=finder):
-        if packages and requirement.name not in packages:
+        if ((packages and requirement.name not in packages) or
+            (skip_packages and requirement.name in skip_packages)):
             continue
 
-        if skip_packages and requirement.name in skip_packages:
+        if len(requirement.specifier) == 0:
+            logger.warn('Version of %s not locked', requirement.name)
             continue
 
         updates = get_updates(requirement=requirement,
@@ -141,7 +143,7 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False,
         if not updates:
             continue
 
-        logger.info('Updates for %s available: %s', requirement.name,
+        logger.info('Updates for %s found: %s', requirement.name,
                     [str(version) for version in sorted(updates)])
         total_updates += len(updates)
 
