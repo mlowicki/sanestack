@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 def setup_logging(verbose):
     """
-    :param verbose: Enable verbose logging
+    :param verbose: enable verbose logging
     :type: bool
     """
     if verbose:
@@ -37,7 +37,7 @@ def setup_logging(verbose):
         formatter = colorlog.ColoredFormatter('%(log_color)s%(message)s')
 
     handler = logging.StreamHandler()
-    logging.getLogger('').addHandler(handler)
+    logging.getLogger().addHandler(handler)
     handler.setFormatter(formatter)
 
 
