@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 def setup_logging(verbose):
     """
+    Install logging facility.
     :param verbose: enable verbose logging
     :type: bool
     """
@@ -43,6 +44,8 @@ def setup_logging(verbose):
 
 def is_update(requirement, version):
     """
+    Check if version is newer than version(s) specified by requirement's
+    specifiers.
     :param requirement:
     :type: pip.req.req_install.InstallRequirement
     :param version:
@@ -91,8 +94,7 @@ def get_updates(requirement, legacy_versions, pre_releases):
     response = requests.get(url)
 
     if not response.ok:
-        logger.error('Request to %s failed (%d)', url,
-                      response.status_code)
+        logger.error('Request to %s failed (%d)', url, response.status_code)
         return
 
     info = response.json()
