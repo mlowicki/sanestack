@@ -152,7 +152,7 @@ def get_requirements(path, line):
 @arg('-v', '--verbose', help='verbose mode')
 @arg('--legacy-versions', help='show legacy versions')
 @arg('--pre-releases', help='show pre-releases (alpha, beta etc.)')
-@arg('path', help='requirements file to check', nargs='?')
+@arg('path', help='path or url of requirements file', nargs='?')
 def check(path, pre_releases=False, legacy_versions=False, verbose=False,
           packages=[], skip_packages=[], line=None, version=False):
     setup_logging(verbose)
