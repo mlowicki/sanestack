@@ -143,6 +143,21 @@ def get_requirements(path, line):
                 yield requirement
 
 
+def is_version_locked(requirement):
+    """
+    Check if requirement's specifers lock package to single version
+    (f.ex. "django==1.7.0") or bounded range (f.ex "django>=1.7,<1.8").
+    :param requirement:
+    :type: pip.req.req_install.InstallRequirement
+    :rtype: bool
+    """
+    for spec in requirement.specifier:
+        if spec.operator in ('==', '<', '<='):
+            return True
+
+    return False
+
+
 @arg('-V', '--version', help='Print version')
 @arg('-l', '--line', help='requirements line to check (f.ex. "ipdb=0.0.1")')
 @arg('--skip-packages', help='list of packages to skip checking',
@@ -172,7 +187,7 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False,
             requirement.editable):
             continue
 
-        if len(requirement.specifier) == 0:
+        if not is_version_locked(requirement):
             logger.warn('Version of %s not locked', requirement.name)
             continue
 
