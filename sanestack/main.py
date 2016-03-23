@@ -8,7 +8,9 @@ from pip._vendor.packaging.version import (
 )
 from pip.req import parse_requirements
 from tempfile import NamedTemporaryFile
+from urlparse import urljoin
 import logging
+import re
 
 from argh import arg, dispatch_command
 from argh.exceptions import CommandError
@@ -19,6 +21,7 @@ from sanestack import __version__
 
 
 logger = logging.getLogger(__name__)
+DEFAULT_INDEX = 'https://pypi.python.org/pypi/'
 
 
 def setup_logging(verbose):
@@ -79,7 +82,63 @@ def is_update(requirement, version):
     return True
 
 
-def get_updates(requirement, legacy_versions, pre_releases):
+def get_versions_from_pypi(url):
+    """
+    Get list of versions for package from PyPI server.
+    :param url: package url
+    :type: str
+    :rtype: list
+    """
+    response = requests.get(url)
+
+    if not response.ok:
+        return []
+
+    payload = response.json()
+    return payload['releases'].keys()
+
+
+def get_versions_from_devpi(url):
+    """
+    Get list of versions for package from devpi server.
+    :param url: package url
+    :type: str
+    :rtype: list
+    """
+    response = requests.get(url, headers={'Accept': 'application/json'})
+
+    if not response.ok:
+        return []
+
+    payload = response.json()
+    return payload['result'].keys()
+
+
+def get_versions(package, index_urls):
+    """
+    Get packages' versions from supplied indices or default index if list of
+    indices is empty.
+    :param package: str
+    :index_urls: list
+    :rtype: set
+    """
+    if not index_urls:
+        index_urls = [DEFAULT_INDEX]
+
+    versions = set()
+
+    for index_url in index_urls:
+        if index_url.endswith('+simple/'):
+            package_url = re.sub(r'\+simple/', package, index_url)
+            versions.update(get_versions_from_devpi(package_url))
+        else:
+            package_url = urljoin(index_url, '%s/json' % package)
+            versions.update(get_versions_from_pypi(package_url))
+
+    return versions
+
+
+def get_updates(requirement, legacy_versions, pre_releases, index_urls):
     """
     Get all updates for passed requirement.
     :param requirement:
@@ -88,19 +147,19 @@ def get_updates(requirement, legacy_versions, pre_releases):
     :type: bool
     :param pre_releases: allow pre-releases (beta, alpha etc.)
     :type: bool
+    :param index_urls: urls of indices
+    :type: list
     :rtype: list(str)
     """
-    url = 'https://pypi.python.org/pypi/%s/json' % requirement.name
-    response = requests.get(url)
+    versions = get_versions(requirement.name, index_urls)
 
-    if not response.ok:
-        logger.error('Request to %s failed (%d)', url, response.status_code)
-        return
+    if not versions:
+        logger.error('No versions found for %s', requirement.name)
+        return []
 
-    info = response.json()
     updates = []
 
-    for version in info['releases'].keys():
+    for version in versions:
         try:
             version = parse(version)
         except InvalidVersion:
@@ -119,17 +178,18 @@ def get_updates(requirement, legacy_versions, pre_releases):
     return updates
 
 
-def get_requirements(path, line):
+def get_requirements(path, line, session, finder):
     """
     :param path: path to requirements file
     :type: str
     :param line: single requirements line (f.ex. "ipdb=0.0.1")
     :type: str
+    :param session:
+    :type: pip.download.PipSession
+    :param finder:
+    :type: pip.index.PackageFinder
     :rtype: list(pip.req.req_install.InstallRequirement)
     """
-    session = PipSession()
-    finder = PackageFinder(find_links=[], index_urls=[], session=session)
-
     if path is not None:
         for requirement in parse_requirements(path, session=session,
                                               finder=finder):
@@ -183,7 +243,10 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False,
 
     total_updates = 0
 
-    for requirement in get_requirements(path, line):
+    session = PipSession()
+    finder = PackageFinder(find_links=[], index_urls=[], session=session)
+
+    for requirement in get_requirements(path, line, session, finder):
         if ((packages and requirement.name not in packages) or
             (skip_packages and requirement.name in skip_packages) or
             requirement.editable):
@@ -195,7 +258,8 @@ def check(path, pre_releases=False, legacy_versions=False, verbose=False,
 
         updates = get_updates(requirement=requirement,
                               legacy_versions=legacy_versions,
-                              pre_releases=pre_releases)
+                              pre_releases=pre_releases,
+                              index_urls=finder.index_urls)
 
         if not updates:
             continue
