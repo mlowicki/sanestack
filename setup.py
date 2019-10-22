@@ -24,7 +24,7 @@ setup(name='sanestack',
       install_requires=[
           'argcomplete==1.1.0',
           'argh==0.26.1',
-          'requests==2.9.1',
+          'requests==2.20.0',
           'colorlog==2.6.1',
       ],
       zip_safe=False)
